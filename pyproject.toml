@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "circlemind"
 version = "0.0.3"
+packages = [{include = "circlemind_pypi"}]
 description = ""
 authors = ["Luca Pinchetti <luca@circlemind.co>"]
 readme = "README.md"
