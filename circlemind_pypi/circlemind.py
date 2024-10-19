@@ -2,7 +2,7 @@ import time
 from typing import Optional, Union, Callable, Dict, Sequence, Tuple, List
 import json
 
-import circlemind
+import circlemind_sdk as circlemind
 from circlemind.httpclient import AsyncHttpClient, HttpClient
 from circlemind.utils.logger import Logger
 from circlemind.utils.retries import RetryConfig

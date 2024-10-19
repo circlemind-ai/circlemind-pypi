@@ -16,7 +16,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-circlemind = "^0.0.2"
+circlemind-sdk = "^0.0.3"
 
 
 [build-system]
