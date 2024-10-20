@@ -3,10 +3,10 @@ from typing import Optional, Union, Callable, Dict, Sequence, Tuple, List
 import json
 
 import circlemind_sdk as circlemind
-from circlemind.httpclient import AsyncHttpClient, HttpClient
-from circlemind.utils.logger import Logger
-from circlemind.utils.retries import RetryConfig
-from circlemind.types import OptionalNullable, UNSET
+from circlemind_sdk.httpclient import AsyncHttpClient, HttpClient
+from circlemind_sdk.utils.logger import Logger
+from circlemind_sdk.utils.retries import RetryConfig
+from circlemind_sdk.types import OptionalNullable, UNSET
 
 
 # Custom Exceptions
