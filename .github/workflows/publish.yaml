@@ -10,6 +10,8 @@ jobs:
     build-n-publish:
         name: Build and publish to PyPI
         runs-on: ubuntu-22.04
+        permissions:
+          id-token: write
         steps:
             - uses: actions/checkout@master
 
