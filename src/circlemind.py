@@ -29,7 +29,7 @@ class Circlemind:
         timeout_ms: Optional[int] = None,
         debug_logger: Optional[Logger] = None
     ):
-        self._sdk = circlemind.Circlemind(
+        self._sdk = circlemind.CirclemindSDK(
             api_key_header=api_key,
             server_idx=server_idx,
             server_url=server_url,
