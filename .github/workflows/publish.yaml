@@ -38,4 +38,4 @@ jobs:
               run: poetry build
 
             - name: pypi-publish
-              uses: pypa/gh-action-pypi-publish@v1.10.2
+              uses: pypa/gh-action-pypi-publish@v1.10.2 --verbose
