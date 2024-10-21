@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "circlemind"
-version = "0.0.3-post2"
+version = "0.0.3-post3"
 packages = [{include = "*", from = "src", to = "circlemind" }]
 description = ""
 authors = ["Luca Pinchetti <luca@circlemind.co>"]
