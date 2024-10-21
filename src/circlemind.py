@@ -93,7 +93,7 @@ class Circlemind:
     ):
         self._sdk.add(
             graph_id=graph_id,
-            add_request={
+            memory_request={
                 "memory": memory
             })
 
