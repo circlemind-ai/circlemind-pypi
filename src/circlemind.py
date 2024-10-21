@@ -1,6 +1,7 @@
 import time
 from typing import Optional, Union, Callable, Dict, Sequence, Tuple, List
 import json
+import os
 
 import circlemind_sdk as circlemind
 from circlemind_sdk.httpclient import AsyncHttpClient, HttpClient
@@ -29,6 +30,8 @@ class Circlemind:
         timeout_ms: Optional[int] = None,
         debug_logger: Optional[Logger] = None
     ):
+        if api_key is None:
+            api_key = os.environ.get("CIRCLEMIND_API_KEY", None)
         self._sdk = circlemind.CirclemindSDK(
             api_key_header=api_key,
             server_idx=server_idx,
@@ -124,3 +127,10 @@ class Circlemind:
             return answer
         except json.JSONDecodeError:
             raise CirclemindError("This is a bug, contact support@circlemind.co.")
+
+
+if __name__ == "__main__":
+    # Example Usage
+    circlemind_client = Circlemind()
+    
+    print(circlemind_client.list_graphs())
