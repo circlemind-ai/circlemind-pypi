@@ -1,13 +1,19 @@
 import time
-from typing import Optional, Union, Callable, Dict, Sequence, Tuple, List
 import json
+from typing import Optional, Union, Callable, Dict, Sequence, Tuple, List
+from pathlib import Path
 import os
 
-import circlemind_sdk as circlemind
+import circlemind_sdk
 from circlemind_sdk.httpclient import AsyncHttpClient, HttpClient
 from circlemind_sdk.utils.logger import Logger
 from circlemind_sdk.utils.retries import RetryConfig
 from circlemind_sdk.types import OptionalNullable, UNSET
+
+from circlemind._parser import PDFParser
+
+
+MAX_DB_ENTRY = 1024 * 256
 
 
 # Custom Exceptions
@@ -32,7 +38,7 @@ class Circlemind:
     ):
         if api_key is None:
             api_key = os.environ.get("CIRCLEMIND_API_KEY", None)
-        self._sdk = circlemind.CirclemindSDK(
+        self._sdk = circlemind_sdk.CirclemindSDK(
             api_key_header=api_key,
             server_idx=server_idx,
             server_url=server_url,
@@ -47,7 +53,7 @@ class Circlemind:
     def list_graphs(
         self,
     ) -> Sequence[str]:
-        return self._sdk.list_graphs()
+        return self._sdk.list_graphs()["graphs"]
     
     def create_graph(
         self,
@@ -88,14 +94,33 @@ class Circlemind:
     
     def add(
         self,
-        memory: str,
+        memory: Union[str, Path],
         graph_id: str = "default"
     ):
-        self._sdk.add(
-            graph_id=graph_id,
-            memory_request={
-                "memory": memory
-            })
+        if isinstance(memory, Path):
+            if memory.suffix == ".pdf":
+                parser = PDFParser()
+                memories = parser.parse(memory, max_record_size=MAX_DB_ENTRY)
+                for memory in memories:
+                    self._sdk.add(
+                        graph_id=graph_id,
+                        memory_request={
+                            "memory": memory
+                        })
+            else:
+                raise CirclemindError("Only PDF files are supported for now.")
+        else:
+            if len(memory) > MAX_DB_ENTRY:
+                memories = [memory[i:i+MAX_DB_ENTRY] for i in range(0, len(memory), MAX_DB_ENTRY)]
+            else:
+                memories = [memory]
+            
+            for memory in memories:
+                self._sdk.add(
+                    graph_id=graph_id,
+                    memory_request={
+                        "memory": memory
+                    })
 
         return
     
@@ -127,10 +152,3 @@ class Circlemind:
             return answer
         except json.JSONDecodeError:
             raise CirclemindError("This is a bug, contact support@circlemind.co.")
-
-
-if __name__ == "__main__":
-    # Example Usage
-    circlemind_client = Circlemind()
-    
-    print(circlemind_client.list_graphs())

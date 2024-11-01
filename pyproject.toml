@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "circlemind"
-version = "0.0.3-post3"
-packages = [{include = "*", from = "src", to = "circlemind" }]
+version = "0.0.4"
+packages = [{include = "circlemind" }]
 description = ""
 authors = ["Luca Pinchetti <luca@circlemind.co>"]
 readme = "README.md"
@@ -16,8 +16,10 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 circlemind-sdk = "^0.0.3"
+pymupdf = "^1.24.13"
+pymupdf4llm = "^0.0.17"
 
 
 [build-system]
