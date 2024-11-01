@@ -28,6 +28,8 @@ class PDFParser(BaseParser):
             for page in pages:
                 page_content = _parse_text(page["text"])
                 page_length = len(page_content)
+                if page_length > max_record_size:
+                    raise ValueError("Page content is too large to be uploaded.")
                 if current_chunk_length + page_length > max_record_size:
                     chunks.append(b''.join((page for page in current_chunk)))
                     current_chunk = []
