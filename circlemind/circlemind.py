@@ -1,6 +1,7 @@
+from dataclasses import dataclass, field
 import time
 import json
-from typing import Optional, Union, Callable, Dict, Sequence, Tuple, List
+from typing import Any, Optional, Union, Callable, Dict, Sequence, Tuple, List
 from pathlib import Path
 import os
 
@@ -20,6 +21,12 @@ MAX_DB_ENTRY = 1024 * 256
 class CirclemindError(Exception):
     """Base class for exceptions in the Circlemind SDK."""
     pass
+
+
+@dataclass
+class CirclemindQueryResponse:
+    response: str = field()
+    context: Dict[str, Any] = field()
 
 
 # Circlemind SDK Client
@@ -95,7 +102,8 @@ class Circlemind:
     def add(
         self,
         memory: Union[str, Path],
-        graph_id: str = "default"
+        graph_id: str = "default",
+        metadata: Optional[Dict[str, str]] = None
     ):
         if isinstance(memory, Path):
             if memory.suffix == ".pdf":
@@ -105,7 +113,7 @@ class Circlemind:
                     self._sdk.add(
                         graph_id=graph_id,
                         memory_request={
-                            "memory": memory
+                            "memory": memory, "metadata": json.dumps(metadata)
                         })
             else:
                 raise CirclemindError("Only PDF files are supported for now.")
@@ -119,7 +127,7 @@ class Circlemind:
                 self._sdk.add(
                     graph_id=graph_id,
                     memory_request={
-                        "memory": memory
+                        "memory": memory, "metadata": json.dumps(metadata)
                     })
 
         return
@@ -127,16 +135,18 @@ class Circlemind:
     def query(
         self,
         query: str,
-        graph_id: str = "default"
+        graph_id: str = "default",
+        with_references: Optional[bool] = False
     ) -> Union[Tuple[str, List[str]], str, List[str]]:
         status = None
         query_response = self._sdk.query(
             graph_id=graph_id,
             reasoning_request={
-                "query": query
+                "query": query,
+                "parameters": json.dumps({"with_references": with_references})
         })
         
-        while status is None or status not in ["DONE", "FAILED"]:
+        while status is None or status not in ["DONE", "FAILED", "dev_DONE", "dev_FAILED"]:
             reasoning_response = self._sdk.get_reasoning(
                 graph_id=graph_id,
                 request_id=query_response.request_id,
@@ -146,9 +156,7 @@ class Circlemind:
             time.sleep(0.5)
         
         try:
-            memories = json.loads(reasoning_response.memories)
-            answer = memories["answer"]
-            
-            return answer
+            return CirclemindQueryResponse(reasoning_response.memories, json.loads(reasoning_response.context))
+
         except json.JSONDecodeError:
             raise CirclemindError("This is a bug, contact support@circlemind.co.")
