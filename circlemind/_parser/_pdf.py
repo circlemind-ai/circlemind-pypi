@@ -13,13 +13,19 @@ class PDFParser(BaseParser):
         self._remove_images_regex = re.compile(r"!\[\]\("+self._imgs_path+r"\/.*\)", re.UNICODE)
     
     def parse(self, filename: str, max_record_size: int = None):
-        pages = pymupdf4llm.to_markdown(filename, ignore_code=True, page_chunks=True, show_progress=False, force_text=False, write_images=True, image_path=self._imgs_path, dpi=10)
-        
-        # Remove unnecessarely created images
-        shutil.rmtree(self._imgs_path)
+        try:
+            pages = pymupdf4llm.to_markdown(filename, ignore_code=True, page_chunks=True, show_progress=False, force_text=False, write_images=True, image_path=self._imgs_path, dpi=10)
+        except Exception as e:
+            raise ValueError(f"Error parsing PDF file: {e}")
+        finally:
+            # Remove unnecessarely created images
+            shutil.rmtree(self._imgs_path)
         
         def _parse_text(text: str):
-            return re.sub(self._remove_images_regex, "", text).encode("utf-8")
+            # Remove images
+            text = re.sub(self._remove_images_regex, "", text)
+            
+            return text.encode("utf-8")
 
         chunks = []
         if max_record_size:
