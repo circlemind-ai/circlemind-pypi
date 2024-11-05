@@ -3,6 +3,7 @@ import time
 import json
 from typing import Any, Optional, Union, Callable, Dict, Sequence, Tuple, List
 from pathlib import Path
+import re
 import os
 
 import circlemind_sdk
@@ -27,6 +28,33 @@ class CirclemindError(Exception):
 class CirclemindQueryResponse:
     response: str = field()
     context: Dict[str, Any] = field()
+    
+    def format_references(self, format_fn: Optional[Callable[[Any, int], str]] = None) -> str:
+        doc_id_to_index: Dict[str, int] = {}
+        def _replace_fn(match: str) -> str:
+            text = match.group()
+            references = re.findall(r'(\d)', text)
+            seen_docs = set()
+            
+            r = ""
+            for reference in references:
+                if reference not in self.context["chunks"]:
+                    continue
+                doc_id = self.context["chunks"][reference]["full_doc_id"]
+                if doc_id in seen_docs or doc_id not in self.context["documents"]:
+                    continue
+                seen_docs.add(doc_id)
+                
+                if doc_id not in doc_id_to_index:
+                    doc_id_to_index[doc_id] = len(doc_id_to_index) + 1
+                
+                doc = self.context["documents"][doc_id]
+                r += format_fn(doc_id_to_index[doc_id], doc["metadata"])
+            return r
+        
+        if format_fn is None:
+            format_fn = lambda i, _: f"[{i}]"
+        return re.sub(r'\[\d[\s\d\]\[]*\]', _replace_fn, self.response), {i: self.context["documents"][doc_id]["metadata"] for doc_id, i in doc_id_to_index.items()}
 
 
 # Circlemind SDK Client
