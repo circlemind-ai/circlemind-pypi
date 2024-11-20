@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import time
 import json
-from typing import Any, Optional, Union, Callable, Dict, Sequence, Tuple, List
+from typing import Any, Optional, Union, Callable, Dict, Sequence
 from pathlib import Path
 import re
 import os
@@ -11,6 +11,7 @@ from circlemind_sdk.httpclient import AsyncHttpClient, HttpClient
 from circlemind_sdk.utils.logger import Logger
 from circlemind_sdk.utils.retries import RetryConfig
 from circlemind_sdk.types import OptionalNullable, UNSET
+from circlemind_sdk.models import RequestStatus, QueryResponse
 
 from circlemind._parser import PDFParser
 
@@ -53,7 +54,7 @@ class CirclemindQueryResponse:
             return r
         
         if format_fn is None:
-            format_fn = lambda i, _: f"[{i}]"
+            def format_fn(i, _): return f"[{i}]"
         return re.sub(r'\[\d[\s\d\]\[]*\]', _replace_fn, self.response), {i: self.context["documents"][doc_id]["metadata"] for doc_id, i in doc_id_to_index.items()}
 
 
@@ -88,7 +89,7 @@ class Circlemind:
     def list_graphs(
         self,
     ) -> Sequence[str]:
-        return self._sdk.list_graphs()["graphs"]
+        return self._sdk.get_graph_list()["graphs"]
     
     def create_graph(
         self,
@@ -101,7 +102,7 @@ class Circlemind:
             example_queries = [example_queries]
 
         return self._sdk.create_graph(
-            graph_id=graph_id,
+            graph_name=graph_id,
             configure_request={
                 "domain": domain,
                 "example_queries": "\n".join(example_queries),
@@ -119,8 +120,8 @@ class Circlemind:
         if isinstance(example_queries, str):
             example_queries = [example_queries]
 
-        return self._sdk.configure(
-            graph_id=graph_id,
+        return self._sdk.create_graph_configuration(
+            graph_name=graph_id,
             configure_request={
                 "domain": domain,
                 "example_queries": "\n".join(example_queries),
@@ -138,8 +139,8 @@ class Circlemind:
                 parser = PDFParser()
                 memories = parser.parse(memory, max_record_size=MAX_DB_ENTRY)
                 for memory in memories:
-                    self._sdk.add(
-                        graph_id=graph_id,
+                    self._sdk.create_insert(
+                        graph_name=graph_id,
                         memory_request={
                             "memory": memory, "metadata": json.dumps(metadata)
                         })
@@ -152,8 +153,8 @@ class Circlemind:
                 memories = [memory]
             
             for memory in memories:
-                self._sdk.add(
-                    graph_id=graph_id,
+                self._sdk.create_insert(
+                    graph_name=graph_id,
                     memory_request={
                         "memory": memory, "metadata": json.dumps(metadata)
                     })
@@ -165,18 +166,18 @@ class Circlemind:
         query: str,
         graph_id: str = "default",
         with_references: Optional[bool] = False
-    ) -> Union[Tuple[str, List[str]], str, List[str]]:
+    ) -> CirclemindQueryResponse:
         status = None
-        query_response = self._sdk.query(
-            graph_id=graph_id,
-            reasoning_request={
+        query_response: QueryResponse = self._sdk.create_query(
+            graph_name=graph_id,
+            query_request={
                 "query": query,
                 "parameters": json.dumps({"with_references": with_references})
         })
         
-        while status is None or status not in ["DONE", "FAILED", "dev_DONE", "dev_FAILED"]:
-            reasoning_response = self._sdk.get_reasoning(
-                graph_id=graph_id,
+        while status is None or status not in ["DONE", "FAILED", "DONE_v1", "FAILED_v1"]:
+            reasoning_response: RequestStatus = self._sdk.get_query_handler(
+                graph_name=graph_id,
                 request_id=query_response.request_id,
                 request_time=query_response.request_time
             )
@@ -184,7 +185,7 @@ class Circlemind:
             time.sleep(0.5)
         
         try:
-            return CirclemindQueryResponse(reasoning_response.memories, json.loads(reasoning_response.context))
+            return CirclemindQueryResponse(reasoning_response.answer, json.loads(reasoning_response.context))
 
         except json.JSONDecodeError:
             raise CirclemindError("This is a bug, contact support@circlemind.co.")
