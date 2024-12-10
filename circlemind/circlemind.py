@@ -165,17 +165,17 @@ class Circlemind:
         self,
         query: str,
         graph_id: str = "default",
-        with_references: Optional[bool] = False
+        **parameters: Any
     ) -> CirclemindQueryResponse:
         status = None
         query_response: QueryResponse = self._sdk.create_query(
             graph_name=graph_id,
             query_request={
                 "query": query,
-                "parameters": json.dumps({"with_references": with_references})
+                "parameters": json.dumps(parameters)
         })
         
-        while status is None or status not in ["DONE", "FAILED", "DONE_v1", "FAILED_v1"]:
+        while status is None or status not in ["DONE", "FAILED"]:
             reasoning_response: RequestStatus = self._sdk.get_query_handler(
                 graph_name=graph_id,
                 request_id=query_response.request_id,
