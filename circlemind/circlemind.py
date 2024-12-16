@@ -89,7 +89,7 @@ class Circlemind:
     def list_graphs(
         self,
     ) -> Sequence[str]:
-        return self._sdk.get_graph_list()["graphs"]
+        return self._sdk.list_graphs()["graphs"]
     
     def create_graph(
         self,
@@ -120,7 +120,7 @@ class Circlemind:
         if isinstance(example_queries, str):
             example_queries = [example_queries]
 
-        return self._sdk.create_graph_configuration(
+        return self._sdk.set_graph_configuration(
             graph_name=graph_id,
             configure_request={
                 "domain": domain,
@@ -139,9 +139,9 @@ class Circlemind:
                 parser = PDFParser()
                 memories = parser.parse(memory, max_record_size=MAX_DB_ENTRY)
                 for memory in memories:
-                    self._sdk.create_insert(
+                    self._sdk.add(
                         graph_name=graph_id,
-                        memory_request={
+                        insert_request={
                             "memory": memory, "metadata": json.dumps(metadata)
                         })
             else:
@@ -153,9 +153,9 @@ class Circlemind:
                 memories = [memory]
             
             for memory in memories:
-                self._sdk.create_insert(
+                self._sdk.add(
                     graph_name=graph_id,
-                    memory_request={
+                    insert_request={
                         "memory": memory, "metadata": json.dumps(metadata)
                     })
 
@@ -168,7 +168,7 @@ class Circlemind:
         **parameters: Any
     ) -> CirclemindQueryResponse:
         status = None
-        query_response: QueryResponse = self._sdk.create_query(
+        query_response: QueryResponse = self._sdk.query(
             graph_name=graph_id,
             query_request={
                 "query": query,
@@ -176,7 +176,7 @@ class Circlemind:
         })
         
         while status is None or status not in ["DONE", "FAILED"]:
-            reasoning_response: RequestStatus = self._sdk.get_query_handler(
+            reasoning_response: RequestStatus = self._sdk.get_query_status(
                 graph_name=graph_id,
                 request_id=query_response.request_id,
                 request_time=query_response.request_time

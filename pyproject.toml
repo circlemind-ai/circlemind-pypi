@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "circlemind"
-version = "0.0.5-post0"
+version = "0.0.5-post1"
 packages = [{include = "circlemind" }]
 description = ""
 authors = ["Luca Pinchetti <luca@circlemind.co>"]
@@ -19,7 +19,7 @@ classifiers = [
 python = "^3.9"
 pymupdf = "^1.24.13"
 pymupdf4llm = "^0.0.17"
-circlemind-sdk = "0.1.0"
+circlemind-sdk = "^0.1.0"
 
 
 [build-system]
