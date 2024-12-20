@@ -89,7 +89,7 @@ class Circlemind:
     def list_graphs(
         self,
     ) -> Sequence[str]:
-        return self._sdk.list_graphs()["graphs"]
+        return self._sdk.list_graphs().graphs
     
     def create_graph(
         self,
