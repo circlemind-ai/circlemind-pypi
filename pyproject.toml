@@ -19,7 +19,7 @@ classifiers = [
 python = "^3.9"
 pymupdf = "^1.24.13"
 pymupdf4llm = "^0.0.17"
-circlemind-sdk = "^0.1.0"
+circlemind-sdk = "^0.1.0-post0"
 
 
 [build-system]
