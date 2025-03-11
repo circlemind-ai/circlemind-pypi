@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "circlemind"
+name = "deeprag"
 version = "0.0.5-post2"
-packages = [{include = "circlemind" }]
+packages = [{include = "deeprag" }]
 description = ""
 authors = ["Luca Pinchetti <luca@circlemind.co>"]
 readme = "README.md"
