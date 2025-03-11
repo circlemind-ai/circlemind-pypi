@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deeprag"
-version = "0.0.5-post2"
+version = "0.0.1"
 packages = [{include = "deeprag" }]
 description = ""
 authors = ["Luca Pinchetti <luca@circlemind.co>"]
